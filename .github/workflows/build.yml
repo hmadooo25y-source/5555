@@ -1,0 +1,42 @@
+name: Build APK
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      - name: Create Cordova project
+        run: |
+          cordova create app com.example.palestineidentity "Palestine ID"
+          cd app
+          cordova platform add android
+          cp ../www/index.html www/
+          cp ../config.xml ./
+
+      - name: Build APK
+        run: |
+          cd app
+          cordova build android
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
